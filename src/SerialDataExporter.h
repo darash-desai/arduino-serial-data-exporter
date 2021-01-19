@@ -1,0 +1,65 @@
+#ifndef SerialDataExporter_h
+#define SerialDataExporter_h
+
+#if defined(ARDUINO) && ARDUINO >= 100
+	#include "Arduino.h"
+#else
+	#include "WProgram.h"
+#endif
+
+/**
+ * Defines the number of different buffer types that are used to store variables
+ * to export. Each buffer type reflects a buffer used to store a unique data
+ * type (char, int, double, etc.), with an additional buffer for labels.
+ */
+const int NUM_BUFFER_TYPES = 2;
+
+const int STRING_INDEX = 0;
+const int INT_INDEX = 1;
+
+class SerialDataExporter
+{
+
+public:
+  SerialDataExporter(
+      Stream &serialPort,
+      int bufferSizes[NUM_BUFFER_TYPES]
+  );
+
+	/** Adds an integer to the export buffer. */
+  bool add(const char *label, int variable);
+
+	/** Exports the current buffer to Serial. */
+	void exportToSerial();
+
+	/** Clears the current buffer of variables to export. */
+	void clear();
+
+
+private:
+  /** Reference to the serial port to export data through. */
+  Stream &m_serial;
+
+  /** Reference to buffer for variable labels. */
+  char *m_labels;
+
+  /** Reference to buffer for int variables. */
+  int *m_ints;
+
+	/** Stores the total size of each buffer type. */
+  int m_bufferLengths[NUM_BUFFER_TYPES];
+
+	/** Reference to current position within the each buffer. */
+  int m_bufferPositions[NUM_BUFFER_TYPES];
+
+	/** Stores the order variables are added and the data type for each. */
+	byte *m_variableOrder;
+
+	/** The current number of variables that have been stored. */
+	int m_size = 0;
+
+	/** Adds a label to the label buffer. */
+	bool addLabel(const char *label);
+};
+
+#endif
