@@ -5,8 +5,9 @@ SerialDataExporter::SerialDataExporter(
     int bufferSizes[NUM_BUFFER_TYPES]
 ) :
   m_serial(serialPort),
-  m_labels((char*) malloc(bufferSizes[0] * sizeof(char))),
-  m_ints((int*) malloc(bufferSizes[1] * sizeof(int)))
+  m_labels((char*) malloc(bufferSizes[STRING_INDEX] * sizeof(char))),
+  m_ints((int*) malloc(bufferSizes[INT_INDEX] * sizeof(int))),
+  m_doubles((double*) malloc(bufferSizes[DOUBLE_INDEX] * sizeof(double)))
 {
   int totalLength = 0;
   for (int index = 0; index < NUM_BUFFER_TYPES; index++) {
@@ -34,39 +35,27 @@ bool SerialDataExporter::add(const char *label, int variable) {
   return true;
 }
 
-void SerialDataExporter::exportToSerial() {
-  // Reset all of the buffer position values so that the array may be used to
-  // track which position is to be printed next for that buffer type in the
-  // export logic below.
-  for (int index = 0; index < NUM_BUFFER_TYPES; index++) {
-    m_bufferPositions[index] = 0;
-  }
+bool SerialDataExporter::add(const char *label, double variable) {
+  if(m_bufferPositions[DOUBLE_INDEX] >= m_bufferLengths[DOUBLE_INDEX] -1) return false;
+  if(!addLabel(label)) return false;
 
-  char *labelPosition;
-  byte variableBuffer;
-  for (int counter = 0; counter < m_size; counter++) {
-    variableBuffer = m_variableOrder[counter];
-    labelPosition = m_labels + m_bufferPositions[STRING_INDEX];
+  m_doubles[m_bufferPositions[DOUBLE_INDEX]] = variable;
+  m_bufferPositions[DOUBLE_INDEX]++;
+  m_variableOrder[m_size] = DOUBLE_INDEX;
+  m_size++;
 
-    Serial.print(labelPosition);
-    Serial.print(":");
+  return true;
+}
 
-    switch(variableBuffer) {
-      case INT_INDEX:
-        Serial.print(m_ints[m_bufferPositions[INT_INDEX]]);
-    }
+void SerialDataExporter::exportJSON(int precision) {
+  Serial.print("{");
+  print(",", precision);
+  Serial.println("}");
+}
 
-    if (counter != m_size -1) {
-      Serial.print(",");
-    }
-
-    m_bufferPositions[STRING_INDEX] += strlen(labelPosition) + 1;
-    m_bufferPositions[variableBuffer]++;
-  }
+void SerialDataExporter::exportToPlotter(int precision) {
+  print(",", precision);
   Serial.println();
-
-  // Reset the buffer data to prepare for a new set of export data
-  clear();
 }
 
 void SerialDataExporter::clear() {
@@ -86,4 +75,43 @@ bool SerialDataExporter::addLabel(const char *label) {
   m_bufferPositions[STRING_INDEX] += length;
 
   return true;
+}
+
+void SerialDataExporter::print(const char *delimeter, int precision) {
+  // Reset all of the buffer position values so that the array may be used to
+  // track which position is to be printed next for that buffer type in the
+  // export logic below.
+  for (int index = 0; index < NUM_BUFFER_TYPES; index++) {
+    m_bufferPositions[index] = 0;
+  }
+
+  char *labelPosition;
+  byte variableBuffer;
+  for (int counter = 0; counter < m_size; counter++) {
+    variableBuffer = m_variableOrder[counter];
+    labelPosition = m_labels + m_bufferPositions[STRING_INDEX];
+
+    Serial.print(labelPosition);
+    Serial.print(":");
+
+    switch(variableBuffer) {
+      case INT_INDEX:
+        Serial.print(m_ints[m_bufferPositions[INT_INDEX]]);
+        break;
+
+      case DOUBLE_INDEX:
+        Serial.print(m_doubles[m_bufferPositions[DOUBLE_INDEX]], precision);
+        break;
+    }
+
+    if (counter != m_size -1) {
+      Serial.print(",");
+    }
+
+    m_bufferPositions[STRING_INDEX] += strlen(labelPosition) + 1;
+    m_bufferPositions[variableBuffer]++;
+  }
+
+  // Reset the buffer data to prepare for a new set of export data
+  clear();
 }

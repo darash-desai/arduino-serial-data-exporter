@@ -12,25 +12,66 @@
  * to export. Each buffer type reflects a buffer used to store a unique data
  * type (char, int, double, etc.), with an additional buffer for labels.
  */
-const int NUM_BUFFER_TYPES = 2;
+const int NUM_BUFFER_TYPES = 3;
 
 const int STRING_INDEX = 0;
 const int INT_INDEX = 1;
+const int DOUBLE_INDEX = 2;
 
 class SerialDataExporter
 {
 
 public:
+	/**
+	 * Constructor.
+	 *
+	 * @param serialPort		Reference to the stream where data should be exported
+	 *											to (e.g. Serial).
+	 * @param	bufferSizes		The buffer sizes to use for each buffer type.
+	 */
   SerialDataExporter(
       Stream &serialPort,
       int bufferSizes[NUM_BUFFER_TYPES]
   );
 
-	/** Adds an integer to the export buffer. */
+	/**
+	 * Adds an integer to the export buffer.
+	 *
+	 * @param label				The label for the variable.
+	 * @param variable		The variable value.
+	 *
+	 * @returns		True if the variable was added to the export buffer or false
+	 *						if there is no space left.
+	 */
   bool add(const char *label, int variable);
 
-	/** Exports the current buffer to Serial. */
-	void exportToSerial();
+	/**
+	 * Adds a double to the export buffer.
+	 *
+	 * @param label				The label for the variable.
+	 * @param variable		The variable value.
+	 *
+	 * @returns		True if the variable was added to the export buffer or false
+	 *						if there is no space left.
+	 */
+  bool add(const char *label, double variable);
+
+	/**
+	 * Exports the current buffer to Serial in JSON format.
+	 *
+	 * @param precision		Optional parameter indicating the output precision for
+	 *										floating point data types.
+	 */
+	void exportJSON(int precision = 6);
+
+	/**
+	 * Exports the current buffer to Serial for use with the Arduino Serial
+	 * plotter.
+	 *
+	 * @param precision		Optional parameter indicating the output precision for
+	 *										floating point data types.
+	 */
+	void exportToPlotter(int precision = 6);
 
 	/** Clears the current buffer of variables to export. */
 	void clear();
@@ -46,6 +87,9 @@ private:
   /** Reference to buffer for int variables. */
   int *m_ints;
 
+	/** Reference to buffer for double variables. */
+  double *m_doubles;
+
 	/** Stores the total size of each buffer type. */
   int m_bufferLengths[NUM_BUFFER_TYPES];
 
@@ -60,6 +104,16 @@ private:
 
 	/** Adds a label to the label buffer. */
 	bool addLabel(const char *label);
+
+	/**
+	 * Prints the data to Serial. Note that calling this function resets the
+	 * export buffer once complete.
+	 *
+	 * @param delimiter		The delimiter to use between variables.
+	 * @param precision		Optional parameter indicating the output precision for
+	 *										floating point data types.
+	 */
+	void print(const char* delimiter, int precision = 6);
 };
 
 #endif
