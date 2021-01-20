@@ -105,15 +105,6 @@ private:
 	/** Adds a label to the label buffer. */
 	bool addLabel(const char *label);
 
-	/**
-	 * Prints the data to Serial. Note that calling this function resets the
-	 * export buffer once complete.
-	 *
-	 * @param delimiter		The delimiter to use between variables.
-	 * @param precision		Optional parameter indicating the output precision for
-	 *										floating point data types.
-	 */
-	void print(const char* delimiter, int precision = 6);
 };
 
 #endif
