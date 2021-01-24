@@ -1,0 +1,16 @@
+##############################################
+# Syntax Coloring Map For Serial Data Exporter
+##############################################
+# Class
+##############################################
+
+SerialDataExporter	KEYWORD1
+
+##############################################
+# Methods and Functions
+##############################################
+
+add	KEYWORD2
+clear	KEYWORD2
+exportJSON	KEYWORD2
+exportToPlotter	KEYWORD2

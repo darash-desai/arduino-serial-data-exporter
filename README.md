@@ -56,7 +56,7 @@ void setup() {
 }
 
 int intVariable = 10;
-int doubleVariable = 20.5;
+double doubleVariable = 20.5;
 
 void loop() {
   exporter.add("my_int_variable", intVariable);
